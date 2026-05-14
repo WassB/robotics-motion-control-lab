@@ -1,0 +1,8 @@
+team_name: pizzalovers
+car_model: lamborghini
+Q: [10.0, 10.0, 10.0, 10.0, 100.0, 100.0, 100.0]
+R: [1., 1.]
+N: 20
+ds: 0.25
+
+

@@ -1,0 +1,21 @@
+mass: 2162  # kg
+inertia: 3300  # kg*m^2
+l_f: 1.55  # m
+l_r: 1.65  # m
+L: 3.2  # m
+h_com: 0.48  # m
+I_z: 3985.0  # kg*m^2  (estimated yaw moment of inertia Izz for a simplified Tesla)
+roll_moment_distribution: 0.51  # fraction
+wheel_to_center_line_distance: 0.77  # m
+max_drive_force: 10000  # N
+max_break_force: 30000  # N
+max_steering_angle: 0.57  # radians (~33 degrees)
+max_steering_rate: 10.0  # radians/s
+max_velocity: 30  # m/s (ish 100 km/h)
+pacejka_B: 10.0
+pacejka_C: 1.9
+pacejka_D_front: 10936.0  # N (mu * Fz_front)
+pacejka_D_rear: 10273.2   # N (mu * Fz_rear)
+mu: 1.0
+Cd: 0.36
+Aref: 2.0  # m^2

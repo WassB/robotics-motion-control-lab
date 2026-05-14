@@ -1,0 +1,28 @@
+
+The friction coefficient (μ) determines the maximum tire force via:
+    F_max = μ * F_z
+where F_z is the vertical (normal) load on the tire.
+
+Below are typical values for μ under different conditions:
+
+| Surface Type                   | Typical μ Range |
+|-------------------------------|-----------------|
+| Dry asphalt (performance tires) | 0.9 – 1.2       |
+| Dry asphalt (regular tires)     | 0.7 – 1.0       |
+| Wet asphalt                     | 0.5 – 0.7       |
+| Snow                            | 0.2 – 0.3       |
+| Ice                             | 0.05 – 0.1      |
+| Racing slick on dry track       | 1.3 – 1.6       |
+
+Recommended μ values for simulation:
+
+- Ferrari / Lamborghini / Bugatti (dry asphalt, high-performance tires): μ = 1.1–1.2
+- Tesla Model S Plaid (dry asphalt, street performance tires): μ ≈ 1.05
+- Regular sedan (all-season tires on dry asphalt): μ ≈ 0.9
+- Wet weather simulation (any car): μ ≈ 0.6
+- Snow/ice simulation (any car): μ ≈ 0.2 – 0.05
+- Race track with slicks (track-only simulation): μ ≈ 1.4
+
+Note:
+Choose μ based on the tire type and road condition you're simulating.
+For consistent simulations across cars, ensure that μ is paired with appropriate Pacejka parameters and vertical loads.
