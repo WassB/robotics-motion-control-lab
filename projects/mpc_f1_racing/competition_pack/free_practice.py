@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import os
 import numpy as np
-from   scipy.interpolate import interp1d
 import yaml
 
 from   racing.racetrack import RaceTrack, FreePractice, get_reference, plot_raceline
@@ -18,7 +17,7 @@ team_dir       = os.path.dirname(__file__)
 
 # Setting the map and the vehicles models
 
-with open(team_dir + f"/{racetrack_name}_par_mpc.yaml") as stream:
+with open(os.path.join(team_dir, f"{racetrack_name}_par_mpc.yaml"), "r") as stream:
     parameters = yaml.safe_load(stream) 
 
 racetrack    : RaceTrack = RaceTrack.get_racetrack(racetrack_name)

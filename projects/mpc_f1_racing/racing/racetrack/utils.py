@@ -157,39 +157,41 @@ def plot_raceline( x_ref_fun : interp1d, racetrack : RaceTrack, name : str) :
 
 
 
-def get_reference(folder_path:str, racetrack_name : str) -> tuple[interp1d, interp1d]: 
+def get_reference(folder_path: str, racetrack_name: str, car_model: str | None = None) -> tuple[interp1d, interp1d]: 
     """
     Loads the reference trajectory for a given racetrack from .npy files and creates interpolation functions.
-    :param folder_path      : The folder path where the reference files are stored.
-    :param racetrack_name   : The name of the racetrack. The file names are expected to be in the format '{racetrack_name}_x_ref.npy' and '{racetrack_name}_u_ref.npy'.
-    :return                 : A tuple containing the interpolation functions for states and inputs.
+
+    Supports two layouts:
+      - folder_path/{racetrack_name}_x_ref.npy
+      - folder_path/{racetrack_name}/{car_model}/{racetrack_name}_x_ref.npy
     """
 
-    # loading reference racing_lines
-    # Setting the reference trajectory for each competitor
-    x_ref_file = folder_path + "/" + racetrack_name + "_x_ref" + ".npy"
-    u_ref_file = folder_path + "/" + racetrack_name + "_u_ref" + ".npy"
+    if car_model is None:
+        x_ref_file = f"{folder_path}/{racetrack_name}_x_ref.npy"
+        u_ref_file = f"{folder_path}/{racetrack_name}_u_ref.npy"
+    else:
+        x_ref_file = f"{folder_path}/{racetrack_name}/{car_model}/{racetrack_name}_x_ref.npy"
+        u_ref_file = f"{folder_path}/{racetrack_name}/{car_model}/{racetrack_name}_u_ref.npy"
 
-    # load the reference a numpy array
-    try :
+    try:
         x_ref = np.load(x_ref_file).T
         u_ref = np.load(u_ref_file).T
     except FileNotFoundError as e:
-        raise FileNotFoundError(f"Reference files not found for racetrack '{racetrack_name}' in folder '{folder_path}'. Please ensure the files '{racetrack_name}_x_ref.npy' and '{racetrack_name}_u_ref.npy' exist in the specified folder.") from e
+        raise FileNotFoundError(
+            f"Reference files not found. Expected '{x_ref_file}' and '{u_ref_file}'."
+        ) from e
 
-    # load the reference a numpy array
-    s_ref   = x_ref[-1,:]   # curvilinear coordinate of the reference trajectory
-    x_ref   = x_ref[:-1,:]
-    u_ref   = u_ref[:-1,:]
+    s_ref = x_ref[-1, :]
+    x_ref = x_ref[:-1, :]
+    u_ref = u_ref[:-1, :]
 
-    # create interpolated trajectory functions
-    u_ref_fun = interp1d(s_ref, u_ref,kind='previous', axis=1, bounds_error=True)
-    x_ref_fun = interp1d(s_ref, x_ref, axis=1, bounds_error=True)
+    extended_s_ref = np.hstack((s_ref, s_ref[-1] + s_ref[1:]))
+    extended_x_ref = np.hstack((x_ref, x_ref[:, 1:]))
+    extended_u_ref = np.hstack((u_ref, u_ref[:, 1:]))
+
+    extended_x_ref[HEADING_INDEX, :] = np.unwrap(extended_x_ref[HEADING_INDEX, :])
+
+    u_ref_fun = interp1d(extended_s_ref, extended_u_ref, kind="previous", axis=1, bounds_error=True)
+    x_ref_fun = interp1d(extended_s_ref, extended_x_ref, axis=1, bounds_error=True)
 
     return x_ref_fun, u_ref_fun
-
-
-
-
-
-

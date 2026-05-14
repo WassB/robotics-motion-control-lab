@@ -74,6 +74,9 @@ def compute_min_curvature_raceline_convex(racetrack: RaceTrack, resolution: floa
     prob = cp.Problem(cp.Minimize(objective), track_constraints)
     prob.solve(solver=cp.CLARABEL, verbose=verbose)
 
+    if prob.status not in (cp.OPTIMAL, cp.OPTIMAL_INACCURATE) or vehicle_positions.value is None or n.value is None:
+        raise RuntimeError(f"Convex raceline optimization failed with status: {prob.status}")
+
     return vehicle_positions.value, n.value
 
 
@@ -115,8 +118,7 @@ def compute_optimal_raceline_dynamic(
         )
         print("Convex initial guess: OK")
     except Exception as e:
-        print("Convex initial guess FAILED:", e)
-        return None, None
+        raise RuntimeError("Convex initial guess failed; dynamic raceline optimization cannot start.") from e
 
     curvature = compute_curvature(vehicle_positions)
     tangent = compute_tangent_vector(vehicle_positions)
@@ -234,7 +236,7 @@ def compute_optimal_raceline_dynamic(
         opti.subject_to(g_u(u[:, ii], kappa_step) <= 0.0)
 
     x_last = x[:, -1]
-    opti.subject_to(g_x(x_last, kappa_step) <= 0.0)
+    opti.subject_to(g_x(x_last, racetrack.curvature(s_values[-1])) <= 0.0)
 
     # boucle fermée sur quelques états
     opti.subject_to(x[XI_INDEX, -1] - x[XI_INDEX, 0] == 0)
@@ -283,13 +285,15 @@ def compute_optimal_raceline_dynamic(
         print("Start Optimization ...")
         solution = opti.solve()
         print("Optimization successful!")
+        value = solution.value
     except Exception as e:
         print("Optimization failed:", e)
-        # on continue avec la meilleure solution connue d'Opti
+        print("Using Opti debug values as a fallback.")
+        value = opti.debug.value
 
     print("Extracting reference trajectory ...")
-    x_sol = opti.debug.value(x)
-    u_sol = opti.debug.value(u)
+    x_sol = value(x)
+    u_sol = value(u)
     u_sol = np.hstack((u_sol, u_sol[:, 0][:, np.newaxis]))
 
     # Fonctions d'interpolation

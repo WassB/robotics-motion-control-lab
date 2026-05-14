@@ -1,10 +1,8 @@
 # Simple Implementation of the Bicycle Model
 import numpy as np
 import casadi as ca
-import yaml as yaml
+import yaml
 import os
-import casadi as ca
-import numpy as np
 
 
 ###############################################
@@ -56,7 +54,7 @@ class KinematicBicycle:
         self.car_model  : str        = car_model    # name of the car model
         self.parameters : Parameters = Parameters() # parameters of the vehicle model
         self.gravity    : float      = 9.81         # gravitational acceleration in m/s^2
-        self.track_width: float     = track_width  # width of the track (used for constraining the lateral position of the vehicle)
+        self.track_width: float      = track_width  # width of the track (used for constraining the lateral position of the vehicle)
         
         # load parameters of the vehicle model
         current_path    : str        = os.path.dirname(os.path.abspath(__file__))
@@ -220,9 +218,11 @@ class KinematicBicycle:
 
         # TODO: fill here the constraints
         # Constraints according to (6)
+        lateral_acceleration = self.omega_ * ca.sqrt(velocity_squared + 1e-9)
+
         gx_1  = velocity_squared - self.parameters.max_velocity**2
-        gx_2  = self.omega_**2 * (velocity_squared) - maximum_normal_acceleration**2
-        gx_3  = -self.omega_**2 * (velocity_squared) - maximum_normal_acceleration**2
+        gx_2  = lateral_acceleration - maximum_normal_acceleration
+        gx_3  = -lateral_acceleration - maximum_normal_acceleration
         gx_4  = self.delta_ - self.parameters.max_steering_angle
         gx_5  = -self.delta_ - self.parameters.max_steering_angle
         gx_6  = self.xi_ - self.parameters.max_xi
@@ -232,8 +232,8 @@ class KinematicBicycle:
         gx_10 = -s_dot + 1
 
         constraints = [gx_1/(self.parameters.max_velocity**2),
-                       gx_2/maximum_normal_acceleration**2,
-                       gx_3/maximum_normal_acceleration**2,
+                       gx_2/maximum_normal_acceleration,
+                       gx_3/maximum_normal_acceleration,
                        gx_4/self.parameters.max_steering_angle,
                        gx_5/self.parameters.max_steering_angle,
                        gx_6/(self.parameters.max_xi),

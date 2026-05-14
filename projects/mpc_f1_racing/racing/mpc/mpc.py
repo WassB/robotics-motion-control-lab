@@ -22,7 +22,7 @@ class NMPC:
         
         """
         Initialize the MPC controller.
-        :param car_model: The car model to be used in the MPC (e.g., "bugatti", "ferrai", "lamborghini", "tesla").
+        :param car_model: The car model to be used in the MPC (e.g., "bugatti", "ferrari", "lamborghini", "tesla").
         :type car_model: str
         :param Q: State cost matrix (7-dimensional vector with the diagonal elements of the matrix Q).
         :type Q: np.ndarray
@@ -40,7 +40,7 @@ class NMPC:
         # Input Checks
         ###################################################################################
 
-        available_models = ["bugatti", "ferrai", "lamborghini", "tesla"]
+        available_models = ["bugatti", "ferrari", "lamborghini", "tesla"]
 
         if car_model not in available_models:
             raise ValueError(f"Car model {car_model} is not available. Available models are: {available_models}")
@@ -87,10 +87,10 @@ class NMPC:
         self.x_scaling = self.model.x_scaling
         self.u_scaling = self.model.u_scaling
         self.was_initialized = False
-        
+        self.x_opt = None
+        self.u_opt = None
+        self.slack_opt = None
 
-    
-    
     def _setup(self):
         # Setup the MPC problem here
 
@@ -106,7 +106,7 @@ class NMPC:
         x_var        = x_scaled * self.x_scaling[:,np.newaxis]                  # Scale the state variables
         u_var        = u_scaled * self.u_scaling[:,np.newaxis]                  # Control input variable
         
-        slack_var = self.opti.variable(5,self.horizon+1)  # Slack variable for the state constraints
+        slack_var = self.opti.variable(2, self.horizon+1)  # Slack variables for the two soft track-boundary constraints
 
         # parameters of the optimizaiton problem
         kappa_par = self.opti.parameter(self.horizon+1)                          # Curvature parameter along the trajectory
@@ -153,7 +153,7 @@ class NMPC:
             gx_9 = -n_i - (self.racetrack.track_width / 2.0)
 
             constraints_x = [gx_8, gx_9]
-            self.opti.subject_to(ca.vertcat(*constraints_x) <= slack_var[ii])  # Add state constraints with slack variable
+            self.opti.subject_to(ca.vertcat(*constraints_x) <= slack_var[:, ii])  # Add soft track-boundary constraints
             
             # Input constraints
             if ii < self.horizon:
@@ -212,7 +212,7 @@ class NMPC:
             cost += (-alpha_progress) * v_tan * self.ds   # maximize tangential velocity
         
         # Slack variable cost (minimal weight since no constraints use them yet)
-        rho_slack = 1e-6  # Very small weight          
+        rho_slack = 1e4  # Large weight: soft constraints should only be violated when necessary
         for ii in range(self.horizon+1):
             e = slack_var[:, ii]
             cost += rho_slack*ca.dot(e, e)*self.ds
@@ -257,7 +257,7 @@ class NMPC:
         
         # Now, convert the Opti object to a function
         self.mpc_controller = self.opti.to_function('MPCPlanner', [x_0 , x_ref, u_ref, kappa_par, x_scaled, u_scaled, slack_var],                   [x_var, u_var, slack_var], 
-                                                                  ['initial_state', 'x_ref',"u_ref", "kappa_ref", 'x_guess', 'v_guess', 'slack_guess'], ['x_opt', 'u_opt', 'slack_opt'])
+                                                                  ['initial_state', 'x_ref',"u_ref", "kappa_ref", 'x_guess', 'u_guess', 'slack_guess'], ['x_opt', 'u_opt', 'slack_opt'])
 
     
     def are_references_set(self) -> bool:
@@ -277,6 +277,8 @@ class NMPC:
 
         if self.x_ref_fun is None or self.u_ref_fun is None or self.k_ref_fun is None:
             raise ValueError("Reference trajectory not set. Please set the reference trajectory using set_reference_trajectory method.")
+        if not hasattr(self, "mpc_controller"):
+            raise RuntimeError("MPC is not set up yet. Call _setup() after setting/perturbing model parameters.")
         
         # Get the reference trajectory from the curvilinear coordinate s0
         x_ref, u_ref, k_ref = self.get_reference_trajectory(s_0)
@@ -298,7 +300,7 @@ class NMPC:
             # Initialize the guess for the optimization problem
             x_guess     = x_ref
             u_guess     = u_ref
-            slack_guess = np.ones((5, self.horizon+1))*0.1                  # Initialize the slack variable guess to 0.1
+            slack_guess = np.ones((2, self.horizon+1))*0.1                  # Initialize the slack variable guess to 0.1
 
         x_guess_scaled = x_guess / self.x_scaling[:,np.newaxis]  # Scale the state guess
         u_guess_scaled = u_guess / self.u_scaling[:,np.newaxis]  # Scale the input guess
@@ -312,6 +314,7 @@ class NMPC:
     
         self.x_prev     = self.x_opt  # Store the optimal state trajectory for warm start
         self.u_prev     = self.u_opt  # Store the optimal input trajectory for warm start
+        self.slack_opt = self.slack_opt.full() if hasattr(self.slack_opt, "full") else self.slack_opt
         self.slack_prev = self.slack_opt  # Store the optimal slack variables for warm start
 
         return optimal_input  # Return the first input of the optimal trajectory plus the reference input at s_0

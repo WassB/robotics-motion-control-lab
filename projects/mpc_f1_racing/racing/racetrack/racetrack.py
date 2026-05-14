@@ -312,20 +312,20 @@ class RaceTrack:
         self.n_splines = n_points - 1
 
         # set variables for each spline
-        for spline in parameteric_splines:
+        for jj, spline in enumerate(parameteric_splines):
 
             # each spline has four control points.
             # the middle points p_1 and p_2 are the control variables
-            # the end points are instead fixed values
+            # the end points are fixed values
 
             p_1 = optimizer.variable(1, 2)
             p_2 = optimizer.variable(1, 2)
 
             p_start = self.interpolation_points[jj]
-            p_end = self.interpolation_points[jj+1]
+            p_end = self.interpolation_points[jj + 1]
             difference = p_end - p_start
 
-            # set iniital position of control point on the axis from p_start to p_end
+            # set initial position of control points on the axis from p_start to p_end
             optimizer.set_initial(p_1, p_start + difference * 0.33)
             optimizer.set_initial(p_2, p_start + difference * 0.66)
             spline.set_parametric_control_points(p_1, p_2)
@@ -443,14 +443,26 @@ class RaceTrack:
         return self.fig, self.ax
 
     def which_spline(self, s: float):
-        if s == 0.0:
+        """Return the spline index associated with curvilinear coordinate s.
+
+        The track is closed, so values outside [0, length] are wrapped.
+        This prevents failures when a prediction horizon or a race simulation
+        goes slightly beyond the finish line.
+        """
+        s = float(s)
+        if self.length <= 0:
+            raise ValueError("Track length must be positive.")
+
+        if s < 0.0 or s > self.length:
+            s = s % self.length
+
+        if np.isclose(s, 0.0):
             return 0
-        if s == self.length:
+        if np.isclose(s, self.length):
             return self.n_splines - 1
 
-        spline_index = np.searchsorted(self.progress_vector, s, side='right')-1
-
-        return spline_index
+        spline_index = np.searchsorted(self.progress_vector, s, side='right') - 1
+        return int(np.clip(spline_index, 0, self.n_splines - 1))
 
     def position(self, s: float):
         """

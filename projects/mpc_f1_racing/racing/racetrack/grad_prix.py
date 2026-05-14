@@ -39,7 +39,7 @@ class FreePractice:
     It allows to set the vehicle model and the reference trajectory for the session.
     """
 
-    def __init__(self, racetrack: RaceTrack, mpc: "NMPC", perturbe_parameters: dict = True):
+    def __init__(self, racetrack: RaceTrack, mpc: "NMPC", perturbe_parameters: bool = True):
         """
         Initializes the FreePractice session.
         """
@@ -117,10 +117,10 @@ class FreePractice:
                 start_time      = perf_counter()
                 control_input   = self.mpc.compute_input(s_0=current_s, x_0=current_x).flatten()
                 mpc_time[frame] = perf_counter() - start_time
-            except:
-                print("MPC failed at s =", current_s, "m_s =", current_s/self.racetrack.length*100, "%")
-                print("The error returned is:", sys.exc_info()[1])
-                print("MPC failed at s =", current_s, "m_s =", current_s/self.racetrack.length*100, "%")
+            except Exception as exc:
+                print("MPC failed at s =", current_s, "progress =", current_s/self.racetrack.length*100, "%")
+                print("The error returned is:", exc)
+                print("Resetting MPC controller on the reference trajectory")
                 current_x     = reference_state.copy()
                 control_input = self.mpc.compute_input(s_0=current_s, x_0=current_x).flatten()
                 num_failures += 1
@@ -255,10 +255,10 @@ class FreePractice:
                 start_time      = perf_counter()
                 control_input   = self.mpc.compute_input(s_0=current_s, x_0=current_x).flatten()
                 mpc_time[frame] = perf_counter() - start_time
-            except:
-                print("MPC failed at s =", current_s, "m_s =", current_s/self.racetrack.length*100, "%")
-                print("The error returned is:", sys.exc_info()[1])
-                print("rest MPC controller on the reference trajectory")
+            except Exception as exc:
+                print("MPC failed at s =", current_s, "progress =", current_s/self.racetrack.length*100, "%")
+                print("The error returned is:", exc)
+                print("Resetting MPC controller on the reference trajectory")
                 current_x     = reference_state.copy()
                 control_input = self.mpc.compute_input(s_0=current_s, x_0=current_x).flatten()
                 num_failures += 1
