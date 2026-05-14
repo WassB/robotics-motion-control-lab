@@ -1,4 +1,3 @@
-# projet_ambitieux
 # Robotics Motion Control Lab
 
 A personal robotics portfolio focused on control, path planning, and motion planning algorithms.
