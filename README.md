@@ -37,15 +37,14 @@ Current results include:
 
 | Category | Algorithm | Status | Description |
 |---|---|---|---|
-| Control | PID | Done | Basic feedback control on simple systems |
-| Control | LQR | In progress | Optimal control for linear systems |
-| Control | MPC | In progress | Constrained predictive control |
+| Control | LQR | DONE | Optimal control for linear systems |
+| Control | MPC | DONE | Constrained predictive control |
 | Planning | Dijkstra | Done | Shortest path on weighted graphs |
 | Planning | A* | Done | Heuristic graph search |
 | Motion Planning | RRT | Done | Sampling-based planning |
-| Motion Planning | RRT* | In progress | Asymptotically optimal RRT |
-| Motion Planning | Hybrid A* | Planned | Non-holonomic path planning |
-| Motion Planning | State Lattice | Planned | Motion primitive-based planning |
+| Motion Planning | RRT* | DONE | Asymptotically optimal RRT |
+| Motion Planning | Hybrid A* | DONE | Non-holonomic path planning |
+| Motion Planning | State Lattice | DONE | Motion primitive-based planning |
 
 ## Repository Structure
 
