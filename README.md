@@ -37,14 +37,18 @@ Current results include:
 
 | Category | Algorithm | Status | Description |
 |---|---|---|---|
-| Control | LQR | DONE | Optimal control for linear systems |
-| Control | MPC | DONE | Constrained predictive control |
+| Control | LQR | Done | Optimal control for linear systems |
+| Control | MPC | Done | Constrained predictive control |
+| Control | EKF | Done | Estimate uknown states |
 | Planning | Dijkstra | Done | Shortest path on weighted graphs |
 | Planning | A* | Done | Heuristic graph search |
 | Motion Planning | RRT | Done | Sampling-based planning |
-| Motion Planning | RRT* | DONE | Asymptotically optimal RRT |
-| Motion Planning | Hybrid A* | DONE | Non-holonomic path planning |
-| Motion Planning | State Lattice | DONE | Motion primitive-based planning |
+| Motion Planning | RRT* | Done | Asymptotically optimal RRT |
+| Motion Planning | Hybrid A* | In progress | Non-holonomic path planning |
+| Motion Planning | State Lattice | Done | Motion primitive-based planning |
+| Task Planning | Transition system x Buchi Automaton  | Planned | Optimization of the strategy / order of actions of the robot | 
+| 2D Simulation | Combination of previous algorithm + 2D environment | Planned | A Robot has to fulfill some goals in a 2D unknown environment | 
+| 3D Simulation | Improvement of 2D Simulation | Planned |   A Robot has to fulfill some goals in a 3D unknown environment
 
 ## Repository Structure
 
